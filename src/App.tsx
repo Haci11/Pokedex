@@ -1,32 +1,20 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
-
-type Pokemon = {
-  id: number;
-  name: string;
-  sprites: {
-    front_default: string;
-  };
-};
-
-type Pokemons = {
-  name: string;
-  url: string;
-};
+import { Pokemon } from "./Type";
+import { Pokemons } from "./Type";
 
 export default function App() {
+
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [nextUrl, setNextUrl] = useState<string>("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const getPokemon = async () => {
-      const res = await axios.get(
-        "https://pokeapi.co/api/v2/pokemon?limit=20&offset=20"
-      );
+      const res =  await axios.get("https://pokeapi.co/api/v2/pokemon/");
 
       setNextUrl(res.data.next);
+      console.log("loading..");
 
       res.data.results.forEach(async (pokemon: Pokemons) => {
         const poke = await axios.get(
@@ -34,25 +22,22 @@ export default function App() {
         );
         setPokemons((p) => [...p, poke.data]);
       });
-      setLoading(true);
     };
+
     getPokemon();
   }, []);
 
   const nextPage = async () => {
     let res = await axios.get(nextUrl);
-
     setNextUrl(res.data.next);
-
     res.data.results.forEach(async (pokemon: Pokemons) => {
       const poke = await axios.get(
         `https://pokeapi.co/api/v2/pokemon/${pokemon.name}`
       );
+
       setPokemons((p) => [...p, poke.data]);
     });
   };
-
-
   return (
     <div className="App">
       <div className="container">
@@ -61,13 +46,15 @@ export default function App() {
           {pokemons.map((pokemon) => {
             return (
               <div className="card">
-                <li>{pokemon.name}</li>
+                <p>{pokemon.name}</p>
                 <img src={pokemon.sprites.front_default} alt="pic" />
               </div>
             );
           })}
         </div>
-        <button onClick={nextPage}>Charger</button>
+        <button className="btn" onClick={nextPage}>
+          Charger
+        </button>
       </div>
     </div>
   );
